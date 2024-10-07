@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.himi.love.mapper.PostTagMapper">
+    <insert id="insertPostTag">
+        INSERT INTO Post_Tag (PostID, TagID)
+        VALUES (#{postId}, #{tagId})
+    </insert>
+
+    <delete id="deletePostTag">
+        DELETE FROM Post_Tag
+        WHERE PostID = #{postId} AND TagID = #{tagId}
+    </delete>
+
+    <select id="findTagIdsByPostId" resultType="java.lang.Integer">
+        SELECT TagID FROM Post_Tag WHERE PostID = #{postId}
+    </select>
+
+    <select id="findPostIdsByTagId" resultType="java.lang.Integer">
+        SELECT PostID FROM Post_Tag WHERE TagID = #{tagId}
+    </select>
+</mapper>

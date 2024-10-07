@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.himi.love.mapper.PostEntityMapper">
+    <insert id="insert" parameterType="com.himi.love.model.PostEntity">
+        INSERT INTO Post_Entity (PostID, EntityID)
+        VALUES (#{postID}, #{entityID})
+    </insert>
+
+    <delete id="deleteByPostIdAndEntityId">
+        DELETE FROM Post_Entity
+        WHERE PostID = #{postId} AND EntityID = #{entityId}
+    </delete>
+
+    <select id="findEntityIdsByPostId" resultType="java.lang.Integer">
+        SELECT EntityID FROM Post_Entity WHERE PostID = #{postId}
+    </select>
+
+    <select id="findPostIdsByEntityId" resultType="java.lang.Integer">
+        SELECT PostID FROM Post_Entity WHERE EntityID = #{entityId}
+    </select>
+
+    <resultMap id="PostDTOResultMap" type="com.himi.love.dto.PostDTO">
+        <id property="postID" column="PostID"/>
+        <result property="content" column="Content"/>
+        <result property="userID" column="UserID"/>
+        <result property="userName" column="UserName"/>
+        <result property="userAvatar" column="UserAvatar"/>
+        <result property="coupleID" column="CoupleID"/>
+        <result property="locationID" column="LocationID"/>
+        <result property="createdAt" column="CreatedAt"/>
+        <result property="updatedAt" column="UpdatedAt"/>
+        <result property="deleted" column="IsDeleted"/>
+        <collection property="images" ofType="com.himi.love.dto.ImageDTO" column="PostID" select="selectImagesByPostId"/>
+        <collection property="tags" ofType="com.himi.love.dto.TagDTO" column="PostID" select="selectTagsByPostId"/>
+        <collection property="entities" ofType="com.himi.love.dto.EntityDTO" column="PostID" select="selectEntitiesByPostId"/>
+        <collection property="comments" ofType="com.himi.love.dto.CommentDTO" column="PostID" select="selectCommentsByPostId"/>
+    </resultMap>
+
+    <select id="findPostsByEntityId" resultMap="PostDTOResultMap">
+        SELECT p.PostID, p.Content, p.UserID, p.CoupleID, p.LocationID, p.CreatedAt, p.UpdatedAt, p.IsDeleted,
+               u.UserName, u.Avatar as UserAvatar
+        FROM Post p
+        JOIN Post_Entity pe ON p.PostID = pe.PostID
+        JOIN User u ON p.UserID = u.UserID
+        WHERE pe.EntityID = #{entityId}
+        ORDER BY p.CreatedAt DESC
+    </select>
+
+    <select id="selectImagesByPostId" resultType="com.himi.love.dto.ImageDTO">
+        SELECT ImageID, ImageURL, PostID
+        FROM Image
+        WHERE PostID = #{PostID}
+    </select>
+
+    <select id="selectTagsByPostId" resultType="com.himi.love.dto.TagDTO">
+        SELECT t.TagID, t.TagName, t.CreatorID
+        FROM Tag t
+        JOIN Post_Tag pt ON t.TagID = pt.TagID
+        WHERE pt.PostID = #{PostID}
+    </select>
+
+    <select id="selectEntitiesByPostId" resultType="com.himi.love.dto.EntityDTO">
+        SELECT e.EntityID, e.EntityName, e.EntityType, e.Avatar, e.CoupleID
+        FROM Entity e
+        JOIN Post_Entity pe ON e.EntityID = pe.EntityID
+        WHERE pe.PostID = #{PostID}
+    </select>
+
+    <select id="selectCommentsByPostId" resultType="com.himi.love.dto.CommentDTO">
+        SELECT c.CommentID, c.Content, c.UserID, c.PostID, c.ParentCommentID, c.IsDeleted, c.CreatedAt, c.UpdatedAt,
+               u.UserName, u.Avatar as UserAvatar
+        FROM Comment c
+        JOIN User u ON c.UserID = u.UserID
+        WHERE c.PostID = #{PostID}
+        ORDER BY c.CreatedAt ASC
+    </select>
+
+    <select id="findLatestPostTimeByEntityId" resultType="java.time.LocalDateTime">
+        SELECT MAX(p.CreatedAt)
+        FROM Post p
+        JOIN Post_Entity pe ON p.PostID = pe.PostID
+        WHERE pe.EntityID = #{entityId}
+    </select>
+</mapper>

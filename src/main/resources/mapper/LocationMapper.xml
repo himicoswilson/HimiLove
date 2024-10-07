@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.himi.love.mapper.LocationMapper">
+    <resultMap id="BaseResultMap" type="com.himi.love.model.Location">
+        <id column="LocationID" jdbcType="INTEGER" property="locationID" />
+        <result column="Latitude" jdbcType="DECIMAL" property="latitude" />
+        <result column="Longitude" jdbcType="DECIMAL" property="longitude" />
+        <result column="LocationName" jdbcType="VARCHAR" property="locationName" />
+    </resultMap>
+
+    <insert id="insert" parameterType="com.himi.love.model.Location" useGeneratedKeys="true" keyProperty="locationID">
+        INSERT INTO Location (Latitude, Longitude, LocationName)
+        VALUES (#{latitude}, #{longitude}, #{locationName})
+    </insert>
+
+    <select id="findById" resultMap="BaseResultMap">
+        SELECT * FROM Location WHERE LocationID = #{locationId}
+    </select>
+
+    <select id="findAll" resultMap="BaseResultMap">
+        SELECT * FROM Location
+    </select>
+
+    <update id="update" parameterType="com.himi.love.model.Location">
+        UPDATE Location
+        SET Latitude = #{latitude}, Longitude = #{longitude}, LocationName = #{locationName}
+        WHERE LocationID = #{locationID}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM Location WHERE LocationID = #{locationId}
+    </delete>
+
+    <select id="findNearbyLocations" resultMap="BaseResultMap">
+        SELECT *, 
+               (6371 * acos(cos(radians(#{latitude})) 
+                     * cos(radians(Latitude)) 
+                     * cos(radians(Longitude) - radians(#{longitude})) 
+                     + sin(radians(#{latitude})) 
+                     * sin(radians(Latitude)))) AS distance 
+        FROM Location
+        HAVING distance &lt; #{radiusInKm}
+        ORDER BY distance
+    </select>
+
+    <select id="findByLatLongAndName" resultMap="BaseResultMap">
+        SELECT * FROM Location 
+        WHERE Latitude = #{latitude} 
+        AND Longitude = #{longitude} 
+        AND LocationName = #{locationName}
+    </select>
+</mapper>

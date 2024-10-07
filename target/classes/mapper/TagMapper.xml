@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.himi.love.mapper.TagMapper">
+    <resultMap id="BaseResultMap" type="com.himi.love.model.Tag">
+        <id column="TagID" jdbcType="INTEGER" property="tagID" />
+        <result column="TagName" jdbcType="VARCHAR" property="tagName" />
+        <result column="CreatorID" jdbcType="INTEGER" property="creatorID" />
+    </resultMap>
+
+    <select id="findById" resultMap="BaseResultMap">
+        SELECT * FROM Tag WHERE TagID = #{tagId}
+    </select>
+
+    <select id="findAll" resultMap="BaseResultMap">
+        SELECT * FROM Tag
+    </select>
+
+    <select id="findByCreatorId" resultMap="BaseResultMap">
+        SELECT * FROM Tag WHERE CreatorID = #{creatorId}
+    </select>
+
+    <select id="findByCoupleId" resultMap="BaseResultMap">
+        SELECT DISTINCT t.*
+        FROM Tag t
+        JOIN User u ON t.CreatorID = u.UserID
+        JOIN Couple c ON (u.UserID = c.UserID1 OR u.UserID = c.UserID2)
+        WHERE c.CoupleID = #{coupleId}
+    </select>
+
+    <insert id="insert" parameterType="com.himi.love.model.Tag" useGeneratedKeys="true" keyProperty="tagID">
+        INSERT INTO Tag (TagName, CreatorID)
+        VALUES (#{tagName}, #{creatorID})
+    </insert>
+
+    <update id="update" parameterType="com.himi.love.model.Tag">
+        UPDATE Tag
+        SET TagName = #{tagName}
+        WHERE TagID = #{tagID}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM Tag WHERE TagID = #{tagId}
+    </delete>
+</mapper>

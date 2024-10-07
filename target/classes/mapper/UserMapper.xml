@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.himi.love.mapper.UserMapper">
+    <resultMap id="BaseResultMap" type="com.himi.love.model.User">
+        <id column="UserID" jdbcType="INTEGER" property="userID" />
+        <result column="UserName" jdbcType="VARCHAR" property="userName" />
+        <result column="Password" jdbcType="VARCHAR" property="password" />
+        <result column="Email" jdbcType="VARCHAR" property="email" />
+        <result column="Avatar" jdbcType="VARCHAR" property="avatar" />
+        <result column="RegistrationDate" jdbcType="TIMESTAMP" property="registrationDate" />
+        <result column="IsDeleted" jdbcType="BOOLEAN" property="isDeleted" />
+        <result column="LastLoginTime" jdbcType="TIMESTAMP" property="lastLoginTime" />
+    </resultMap>
+
+    <select id="findByUsername" resultMap="BaseResultMap">
+        SELECT * FROM User WHERE UserName = #{username} AND IsDeleted = FALSE
+    </select>
+
+    <select id="findById" resultMap="BaseResultMap">
+        SELECT * FROM User WHERE UserID = #{userId} AND IsDeleted = FALSE
+    </select>
+
+    <select id="findByEmail" resultMap="BaseResultMap">
+        SELECT * FROM User WHERE Email = #{email} AND IsDeleted = FALSE
+    </select>
+
+    <select id="findAll" resultMap="BaseResultMap">
+        SELECT * FROM User WHERE IsDeleted = FALSE
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="userID">
+        INSERT INTO User (UserName, Password, Email, Avatar)
+        VALUES (#{userName}, #{password}, #{email}, #{avatar})
+    </insert>
+
+    <update id="update">
+        UPDATE User
+        SET UserName = #{userName},
+            Password = #{password},
+            Email = #{email},
+            Avatar = #{avatar}
+        WHERE UserID = #{userID}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM User WHERE UserID = #{userId}
+    </delete>
+
+    <update id="softDeleteById">
+        UPDATE User SET IsDeleted = TRUE WHERE UserID = #{userId}
+    </update>
+
+    <update id="updateLastLoginTime">
+        UPDATE User SET LastLoginTime = CURRENT_TIMESTAMP WHERE UserID = #{userId}
+    </update>
+
+    <select id="count" resultType="long">
+        SELECT COUNT(*) FROM User WHERE IsDeleted = FALSE
+    </select>
+</mapper>
