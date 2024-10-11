@@ -27,14 +27,15 @@
     </select>
 
     <insert id="insert" parameterType="com.himi.love.model.Image" useGeneratedKeys="true" keyProperty="imageID">
-        INSERT INTO Image (ImageURL, PostID)
-        VALUES (#{imageURL}, #{postID})
+        INSERT INTO Image (ImageURL, PostID, OrderIndex)
+        VALUES (#{imageURL}, #{postID}, #{orderIndex})
     </insert>
 
     <update id="update" parameterType="com.himi.love.model.Image">
         UPDATE Image
         SET ImageURL = #{imageURL},
-            PostID = #{postID}
+            PostID = #{postID},
+            OrderIndex = #{orderIndex}
         WHERE ImageID = #{imageID}
     </update>
 

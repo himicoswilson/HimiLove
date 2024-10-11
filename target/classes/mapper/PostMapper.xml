@@ -32,10 +32,21 @@
         SELECT * FROM Post WHERE LocationID = #{locationId} AND IsDeleted = false ORDER BY CreatedAt DESC
     </select>
 
+    <select id="findByCoupleIdWithPagination" resultMap="BaseResultMap">
+        SELECT * FROM Post 
+        WHERE CoupleID = #{coupleId} AND IsDeleted = false 
+        ORDER BY CreatedAt DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
     <insert id="insert" parameterType="com.himi.love.model.Post" useGeneratedKeys="true" keyProperty="postID">
         INSERT INTO Post (Content, UserID, CoupleID, LocationID, CreatedAt, UpdatedAt, IsDeleted)
         VALUES (#{content}, #{userID}, #{coupleID}, #{locationID}, #{createdAt}, #{updatedAt}, #{isDeleted})
     </insert>
+
+    <select id="getLastInsertId" resultType="Integer">
+        SELECT PostID FROM Post ORDER BY CreatedAt DESC LIMIT 1
+    </select>
 
     <update id="update" parameterType="com.himi.love.model.Post">
         UPDATE Post

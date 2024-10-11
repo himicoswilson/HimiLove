@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -32,10 +33,16 @@ public class PostController {
     @Autowired
     private PostEntityService postEntityService;
 
-    @PostMapping
-    public ResponseEntity<?> createPost(@RequestBody Post post, @AuthenticationPrincipal UserDetails userDetails) {
+    @PostMapping(consumes = "multipart/form-data")
+    public ResponseEntity<Post> createPost(
+            @RequestParam("content") String content,
+            @RequestParam(value = "tags", required = false) String tagsJson,
+            @RequestParam(value = "entities", required = false) String entitiesJson,
+            @RequestParam(value = "images", required = false) MultipartFile[] images,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        
         User currentUser = userService.getUserByUsername(userDetails.getUsername());
-        Post createdPost = postService.createPost(post, currentUser, coupleService.getCoupleByUser(currentUser));
+        Post createdPost = postService.createPost(content, tagsJson, entitiesJson, images, currentUser, coupleService.getCoupleByUser(currentUser));
         return ResponseEntity.ok(createdPost);
     }
 
@@ -47,9 +54,12 @@ public class PostController {
     }
 
     @GetMapping
-    public ResponseEntity<?> getAllPosts(@AuthenticationPrincipal UserDetails userDetails) {
+    public ResponseEntity<?> getAllPosts(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int limit,
+            @AuthenticationPrincipal UserDetails userDetails) {
         User currentUser = userService.getUserByUsername(userDetails.getUsername());
-        List<PostDTO> posts = postService.getAllPosts(currentUser, coupleService.getCoupleByUser(currentUser));
+        List<PostDTO> posts = postService.getAllPosts(currentUser, coupleService.getCoupleByUser(currentUser), page, limit);
         return ResponseEntity.ok(posts);
     }
 

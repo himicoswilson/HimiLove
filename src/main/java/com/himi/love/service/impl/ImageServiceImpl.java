@@ -4,10 +4,13 @@ import com.himi.love.mapper.ImageMapper;
 import com.himi.love.model.Image;
 import com.himi.love.model.User;
 import com.himi.love.model.Couple;
+import com.himi.love.dto.ImageDTO;
 import com.himi.love.dto.PostDTO;
+import org.springframework.web.multipart.MultipartFile;
 import com.himi.love.service.ImageService;
 import com.himi.love.service.PostService;
 import com.himi.love.service.CoupleService;
+import com.himi.love.service.ImageUploadService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,6 +31,9 @@ public class ImageServiceImpl implements ImageService {
 
     @Autowired
     private CoupleService coupleService;
+
+    @Autowired
+    private ImageUploadService imageUploadService;
 
     @Cacheable(cacheNames = "image", key = "#imageId", unless = "#result == null")
     @Override
@@ -67,11 +73,19 @@ public class ImageServiceImpl implements ImageService {
     @CacheEvict(cacheNames = {"image", "images"}, key = "#currentUser.getUserID()")
     @Transactional
     @Override
-    public Image createImage(Image image, User currentUser) {
-        PostDTO post = postService.getPostById(image.getPostID(), currentUser, coupleService.getCoupleByUser(currentUser));
+    public ImageDTO createImage(MultipartFile file, Integer postID, Integer orderIndex, User currentUser) {
+        PostDTO post = postService.getPostById(postID, currentUser, coupleService.getCoupleByUser(currentUser));
         if (!post.getUserID().equals(currentUser.getUserID())) {
             throw new RuntimeException("您没有权限为此帖子添加图片");
         }
+
+        // 上传图片到 OSS
+        String imageUrl = imageUploadService.uploadImage(file); // 假设 ImageDTO 中有一个 MultipartFile 类型的字段
+        ImageDTO image = new ImageDTO();
+        image.setImageURL(imageUrl); // 设置图片 URL
+        image.setPostID(postID);
+        image.setOrderIndex(orderIndex);
+
         imageMapper.insert(image);
         return image;
     }
@@ -79,7 +93,7 @@ public class ImageServiceImpl implements ImageService {
     @CacheEvict(cacheNames = {"image", "images"}, key = "#currentUser.getUserID()")
     @Transactional
     @Override
-    public Image updateImage(Image image, User currentUser) {
+    public ImageDTO updateImage(ImageDTO image, User currentUser) {
         Image existingImage = getImageById(image.getImageID(), currentUser);
         if (existingImage == null) {
             throw new RuntimeException("图片不存在");

@@ -9,6 +9,7 @@ public class PostDTO implements Serializable {
     private String content;
     private Integer userID;
     private String userName;
+    private String nickName;
     private String userAvatar;
     private Integer coupleID;
     private Integer locationID;
@@ -58,6 +59,14 @@ public class PostDTO implements Serializable {
 
     public void setUserName(String userName) {
         this.userName = userName;
+    }
+
+    public String getNickName() {
+        return nickName;
+    }
+
+    public void setNickName(String nickName) {
+        this.nickName = nickName;
     }
 
     public String getUserAvatar() {

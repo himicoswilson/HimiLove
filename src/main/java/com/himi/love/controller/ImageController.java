@@ -1,7 +1,9 @@
 package com.himi.love.controller;
 
+import com.himi.love.dto.ImageDTO;
 import com.himi.love.model.Image;
 import com.himi.love.model.User;
+import org.springframework.web.multipart.MultipartFile;
 import com.himi.love.service.ImageService;
 import com.himi.love.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -62,13 +64,14 @@ public class ImageController {
     }
 
     @PostMapping
-    public ResponseEntity<?> createImage(@RequestBody Image image, @AuthenticationPrincipal UserDetails userDetails) {
+    public ResponseEntity<?> createImage(@RequestParam("file") MultipartFile file, @RequestParam("postID") Integer postID, @RequestParam("orderIndex") Integer orderIndex, @AuthenticationPrincipal UserDetails userDetails) {
         if (userDetails == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("用户未认证");
         }
         User currentUser = userService.getUserByUsername(userDetails.getUsername());
+        
         try {
-            Image createdImage = imageService.createImage(image, currentUser);
+            ImageDTO createdImage = imageService.createImage(file, postID, orderIndex, currentUser);
             return ResponseEntity.ok(createdImage);
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
@@ -76,14 +79,14 @@ public class ImageController {
     }
 
     @PutMapping("/{imageId}")
-    public ResponseEntity<?> updateImage(@PathVariable Integer imageId, @RequestBody Image image, @AuthenticationPrincipal UserDetails userDetails) {
+    public ResponseEntity<?> updateImage(@PathVariable Integer imageId, @RequestBody ImageDTO image, @AuthenticationPrincipal UserDetails userDetails) {
         if (userDetails == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("用户未认证");
         }
         User currentUser = userService.getUserByUsername(userDetails.getUsername());
         image.setImageID(imageId);
         try {
-            Image updatedImage = imageService.updateImage(image, currentUser);
+            ImageDTO updatedImage = imageService.updateImage(image, currentUser);
             return ResponseEntity.ok(updatedImage);
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());

@@ -16,6 +16,7 @@ public interface PostMapper {
     List<Post> findByCoupleId(Integer coupleId);
     List<Post> findByLocationId(Integer locationId);
     int insert(Post post);
+    Integer getLastInsertId();
     int update(Post post);
     int deleteById(Integer postId);
 
@@ -33,4 +34,6 @@ public interface PostMapper {
 
     // 获取帖子的评论列表
     List<CommentDTO> findCommentsByPostId(@Param("postId") Integer postId);
+
+    List<Post> findByCoupleIdWithPagination(@Param("coupleId") Integer coupleId, @Param("offset") int offset, @Param("limit") int limit);
 }

@@ -1,5 +1,6 @@
 package com.himi.love.mapper;
 
+import com.himi.love.dto.ImageDTO;
 import com.himi.love.model.Image;
 import org.apache.ibatis.annotations.Mapper;
 
@@ -11,7 +12,7 @@ public interface ImageMapper {
     List<Image> findAll();
     List<Image> findByPostId(Integer postId);
     List<Image> findByCoupleId(Integer coupleId);
-    int insert(Image image);
-    int update(Image image);
+    int insert(ImageDTO image);
+    int update(ImageDTO image);
     int deleteById(Integer imageId);
 }

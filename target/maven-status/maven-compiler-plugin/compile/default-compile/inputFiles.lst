@@ -1,6 +1,4 @@
 /Users/himicos/IdeaProjects/HimiLove/src/main/java/com/himi/love/HimiLoveApplication.java
-/Users/himicos/IdeaProjects/HimiLove/src/main/java/com/himi/love/annotation/RequirePermission.java
-/Users/himicos/IdeaProjects/HimiLove/src/main/java/com/himi/love/aspect/PermissionAspect.java
 /Users/himicos/IdeaProjects/HimiLove/src/main/java/com/himi/love/config/JwtConfig.java
 /Users/himicos/IdeaProjects/HimiLove/src/main/java/com/himi/love/config/MyBatisConfig.java
 /Users/himicos/IdeaProjects/HimiLove/src/main/java/com/himi/love/config/SecurityConfig.java
@@ -24,7 +22,6 @@
 /Users/himicos/IdeaProjects/HimiLove/src/main/java/com/himi/love/dto/PostDTO.java
 /Users/himicos/IdeaProjects/HimiLove/src/main/java/com/himi/love/dto/TagDTO.java
 /Users/himicos/IdeaProjects/HimiLove/src/main/java/com/himi/love/dto/UserDTO.java
-/Users/himicos/IdeaProjects/HimiLove/src/main/java/com/himi/love/enums/Permission.java
 /Users/himicos/IdeaProjects/HimiLove/src/main/java/com/himi/love/mapper/CommentMapper.java
 /Users/himicos/IdeaProjects/HimiLove/src/main/java/com/himi/love/mapper/CoupleMapper.java
 /Users/himicos/IdeaProjects/HimiLove/src/main/java/com/himi/love/mapper/EntityMapper.java
@@ -55,6 +52,7 @@
 /Users/himicos/IdeaProjects/HimiLove/src/main/java/com/himi/love/service/CoupleService.java
 /Users/himicos/IdeaProjects/HimiLove/src/main/java/com/himi/love/service/EntityService.java
 /Users/himicos/IdeaProjects/HimiLove/src/main/java/com/himi/love/service/ImageService.java
+/Users/himicos/IdeaProjects/HimiLove/src/main/java/com/himi/love/service/ImageUploadService.java
 /Users/himicos/IdeaProjects/HimiLove/src/main/java/com/himi/love/service/LocationService.java
 /Users/himicos/IdeaProjects/HimiLove/src/main/java/com/himi/love/service/MoodService.java
 /Users/himicos/IdeaProjects/HimiLove/src/main/java/com/himi/love/service/PostEntityService.java
@@ -66,6 +64,7 @@
 /Users/himicos/IdeaProjects/HimiLove/src/main/java/com/himi/love/service/impl/CoupleServiceImpl.java
 /Users/himicos/IdeaProjects/HimiLove/src/main/java/com/himi/love/service/impl/EntityServiceImpl.java
 /Users/himicos/IdeaProjects/HimiLove/src/main/java/com/himi/love/service/impl/ImageServiceImpl.java
+/Users/himicos/IdeaProjects/HimiLove/src/main/java/com/himi/love/service/impl/ImageUploadServiceImpl.java
 /Users/himicos/IdeaProjects/HimiLove/src/main/java/com/himi/love/service/impl/LocationServiceImpl.java
 /Users/himicos/IdeaProjects/HimiLove/src/main/java/com/himi/love/service/impl/MoodServiceImpl.java
 /Users/himicos/IdeaProjects/HimiLove/src/main/java/com/himi/love/service/impl/PostEntityServiceImpl.java
@@ -73,4 +72,3 @@
 /Users/himicos/IdeaProjects/HimiLove/src/main/java/com/himi/love/service/impl/PostTagServiceImpl.java
 /Users/himicos/IdeaProjects/HimiLove/src/main/java/com/himi/love/service/impl/TagServiceImpl.java
 /Users/himicos/IdeaProjects/HimiLove/src/main/java/com/himi/love/service/impl/UserServiceImpl.java
-/Users/himicos/IdeaProjects/HimiLove/src/main/java/com/himi/love/util/PermissionChecker.java
