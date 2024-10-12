@@ -2,6 +2,7 @@ package com.himi.love.service;
 
 import com.himi.love.model.User;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 
 public interface UserService extends UserDetailsService {
@@ -46,7 +47,7 @@ public interface UserService extends UserDetailsService {
     boolean isEmailAvailable(String email);
     
     // 更新用户头像
-    User updateAvatar(Integer userId, String avatarUrl);
+    User updateAvatar(Integer userId, MultipartFile avatar);
     
     // 获取用户数量
     long getUserCount();

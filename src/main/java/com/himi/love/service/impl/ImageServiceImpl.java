@@ -80,7 +80,7 @@ public class ImageServiceImpl implements ImageService {
         }
 
         // 上传图片到 OSS
-        String imageUrl = imageUploadService.uploadImage(file); // 假设 ImageDTO 中有一个 MultipartFile 类型的字段
+        String imageUrl = imageUploadService.uploadPostImage(file, currentUser, coupleService.getCoupleByUser(currentUser)); // 假设 ImageDTO 中有一个 MultipartFile 类型的字段
         ImageDTO image = new ImageDTO();
         image.setImageURL(imageUrl); // 设置图片 URL
         image.setPostID(postID);

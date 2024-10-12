@@ -4,6 +4,7 @@
     <resultMap id="BaseResultMap" type="com.himi.love.model.User">
         <id column="UserID" jdbcType="INTEGER" property="userID" />
         <result column="UserName" jdbcType="VARCHAR" property="userName" />
+        <result column="NickName" jdbcType="VARCHAR" property="nickName" />
         <result column="Password" jdbcType="VARCHAR" property="password" />
         <result column="Email" jdbcType="VARCHAR" property="email" />
         <result column="Avatar" jdbcType="VARCHAR" property="avatar" />
@@ -29,13 +30,14 @@
     </select>
 
     <insert id="insert" useGeneratedKeys="true" keyProperty="userID">
-        INSERT INTO User (UserName, Password, Email, Avatar)
-        VALUES (#{userName}, #{password}, #{email}, #{avatar})
+        INSERT INTO User (UserName, Password, Email, Avatar, NickName)
+        VALUES (#{userName}, #{password}, #{email}, #{avatar}, #{nickName})
     </insert>
 
     <update id="update">
         UPDATE User
         SET UserName = #{userName},
+            NickName = #{nickName},
             Password = #{password},
             Email = #{email},
             Avatar = #{avatar}

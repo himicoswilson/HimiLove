@@ -25,6 +25,8 @@ import java.util.ArrayList;
 import java.util.List;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import org.springframework.beans.BeanUtils;
+import com.himi.love.service.UserService;
 @Service
 public class PostServiceImpl implements PostService {
 
@@ -46,9 +48,12 @@ public class PostServiceImpl implements PostService {
     @Autowired
     private CoupleService coupleService;
 
+    @Autowired
+    private UserService userService;
+
     @Override
     @Transactional
-    @CacheEvict(cacheNames = "posts", key = "#couple.getCoupleID()")
+    @CacheEvict(cacheNames = "posts", key = "#couple.getCoupleID() + ':' + #page + ':' + #limit")
     public Post createPost(String content, String tagsJson, String entitiesJson, MultipartFile[] images, User currentUser, Couple couple) {
         // 创建帖子
         Post postEntity = new Post();
@@ -68,7 +73,7 @@ public class PostServiceImpl implements PostService {
         if (images != null) {
             for (int i = 0; i < images.length; i++) {
                 MultipartFile imageFile = images[i];
-                String imageUrl = imageUploadService.uploadImage(imageFile); // 上传图片
+                String imageUrl = imageUploadService.uploadPostImage(imageFile, currentUser, couple); // 上传图片
                 
                 ImageDTO imageDTO = new ImageDTO();
                 imageDTO.setImageURL(imageUrl);
@@ -154,7 +159,7 @@ public class PostServiceImpl implements PostService {
     @Transactional
     @Caching(evict = {
         @CacheEvict(cacheNames = "posts", key = "#couple.getCoupleID() + ':' + #postId"),
-        @CacheEvict(cacheNames = "posts", key = "#couple.getCoupleID()")
+        @CacheEvict(cacheNames = "posts", key = "#couple.getCoupleID() + ':' + #page + ':' + #limit")
     })
     public Post updatePost(Integer postId, Post post, User currentUser, Couple couple) {
         System.out.println("updatePost");
@@ -173,7 +178,7 @@ public class PostServiceImpl implements PostService {
     @Transactional
     @Caching(evict = {
         @CacheEvict(cacheNames = "posts", key = "#couple.getCoupleID() + ':' + #postId"),
-        @CacheEvict(cacheNames = "posts", key = "#couple.getCoupleID()")
+        @CacheEvict(cacheNames = "posts", key = "#couple.getCoupleID() + ':' + #page + ':' + #limit")
     })
     public void deletePost(Integer postId, User currentUser, Couple couple) {
         System.out.println("deletePost");
@@ -208,22 +213,16 @@ public class PostServiceImpl implements PostService {
 
     private PostDTO convertToPostDTO(Post post) {
         PostDTO postDTO = new PostDTO();
-        // 设置基本字段
-        postDTO.setPostID(post.getPostID());
-        postDTO.setContent(post.getContent());
-        postDTO.setUserID(post.getUserID());
-        postDTO.setCoupleID(post.getCoupleID());
-        postDTO.setLocationID(post.getLocationID());
-        postDTO.setCreatedAt(post.getCreatedAt());
-        postDTO.setUpdatedAt(post.getUpdatedAt());
-        postDTO.setDeleted(post.isIsDeleted());
+        BeanUtils.copyProperties(post, postDTO);
 
-        // 设置用户信息
-        User user = postMapper.getUserByPostId(post.getPostID());
+        postDTO.setDeleted(post.isIsDeleted());
+        
+        // 获取最新的用户信息
+        User user = userService.getUserById(post.getUserID());
         postDTO.setUserName(user.getUserName());
         postDTO.setNickName(user.getNickName());
         postDTO.setUserAvatar(user.getAvatar());
-
+        
         // 设置图片列表
         List<ImageDTO> images = postMapper.findImagesByPostId(post.getPostID());
         postDTO.setImages(images);

@@ -6,6 +6,7 @@
         <result column="UserID1" jdbcType="INTEGER" property="userID1" />
         <result column="UserID2" jdbcType="INTEGER" property="userID2" />
         <result column="AnniversaryDate" jdbcType="DATE" property="anniversaryDate" />
+        <result column="BgImg" jdbcType="VARCHAR" property="bgImg" />
     </resultMap>
 
     <select id="findById" resultMap="BaseResultMap">
@@ -33,7 +34,8 @@
         UPDATE Couple
         SET UserID1 = #{userID1},
             UserID2 = #{userID2},
-            AnniversaryDate = #{anniversaryDate}
+            AnniversaryDate = #{anniversaryDate},
+            BgImg = #{bgImg}
         WHERE CoupleID = #{coupleID}
     </update>
 

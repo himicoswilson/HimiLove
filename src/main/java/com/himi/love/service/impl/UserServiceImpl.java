@@ -2,9 +2,14 @@ package com.himi.love.service.impl;
 
 import com.himi.love.service.UserService;
 import com.himi.love.mapper.UserMapper;
+import com.himi.love.model.Couple;
 import com.himi.love.model.User;
 import com.himi.love.config.JwtConfig;
+import com.himi.love.service.ImageUploadService;
+import com.himi.love.service.CoupleService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -12,7 +17,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
+import org.springframework.web.multipart.MultipartFile;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,6 +32,15 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     private JwtConfig jwtConfig;
+
+    @Autowired
+    private ImageUploadService imageUploadService;
+
+    @Autowired
+    private CoupleService coupleService;
+
+    @Autowired
+    private CacheManager cacheManager;
 
     @Override
     @Transactional
@@ -66,13 +80,13 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @Cacheable(cacheNames = "users", key = "#userId", unless = "#result == null")
+    @Cacheable(cacheNames = "users", key = "#userId")
     public User getUserById(Integer userId) {
         return userMapper.findById(userId);
     }
 
     @Override
-    @CacheEvict(cacheNames = "user", key = "#user.getUserID()")
+    @CacheEvict(cacheNames = "users", key = "#user.getUserID()")
     @Transactional
     public User updateUser(User user) {
         User existingUser = userMapper.findById(user.getUserID());
@@ -84,7 +98,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @CacheEvict(cacheNames = "user", key = "#userId")
+    @CacheEvict(cacheNames = "users", key = "#userId")
     @Transactional
     public void deleteUser(Integer userId) {
         userMapper.softDeleteById(userId);
@@ -149,13 +163,28 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public User updateAvatar(Integer userId, String avatarUrl) {
+    @CacheEvict(cacheNames = "users", key = "#userId")
+    public User updateAvatar(Integer userId, MultipartFile avatar) {
         User user = userMapper.findById(userId);
         if (user == null) {
             throw new RuntimeException("用户不存在");
         }
+        String avatarUrl = imageUploadService.uploadUserAvatar(avatar, user);
         user.setAvatar(avatarUrl);
         userMapper.update(user);
+
+        // 清除该用户相关的帖子缓存
+        Couple couple = coupleService.getCoupleByUser(user);
+        if (couple != null) {
+            Cache cache = cacheManager.getCache("posts");
+            if (cache != null) {
+                // 这里假设我们最多缓存了100页的数据
+                for (int i = 1; i <= 100; i++) {
+                    cache.evict(couple.getCoupleID() + ":" + i + ":10");  // 假设每页10条
+                }
+            }
+        }
+
         return user;
     }
 

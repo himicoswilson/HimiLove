@@ -9,7 +9,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
-
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.http.MediaType;
+import org.springframework.format.annotation.DateTimeFormat;
+import java.time.LocalDate;
 @RestController
 @RequestMapping("/api/couples")
 public class CoupleController {
@@ -20,16 +23,15 @@ public class CoupleController {
     @Autowired
     private UserService userService;
 
-    @PostMapping
-    public ResponseEntity<Couple> createCouple(@RequestBody Couple couple,
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<Couple> createCouple(@RequestPart("couple") Couple couple,
+                                               @RequestPart(value = "background", required = false) MultipartFile background,
                                                @AuthenticationPrincipal UserDetails userDetails) {
         User currentUser = userService.getUserByUsername(userDetails.getUsername());
         if (!currentUser.getUserID().equals(couple.getUserID1()) && !currentUser.getUserID().equals(couple.getUserID2())) {
             return ResponseEntity.badRequest().build();
         }
-        System.out.println("Received couple: " + couple);
-    System.out.println("AnniversaryDate: " + couple.getAnniversaryDate());
-        Couple createdCouple = coupleService.createCouple(couple.getUserID1(), couple.getUserID2(), couple.getAnniversaryDate(), currentUser);
+        Couple createdCouple = coupleService.createCouple(couple.getUserID1(), couple.getUserID2(), couple.getAnniversaryDate(), background, currentUser);
         return ResponseEntity.ok(createdCouple);
     }
 
@@ -44,17 +46,17 @@ public class CoupleController {
         return ResponseEntity.ok(couple);
     }
 
-    @PutMapping("/{coupleId}")
+    @PutMapping(value = "/{coupleId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Couple> updateCouple(@PathVariable Integer coupleId,
-                                               @RequestBody Couple couple,
+                                               @RequestParam(value = "anniversaryDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate anniversaryDate,
+                                               @RequestPart(value = "background", required = false) MultipartFile background,
                                                @AuthenticationPrincipal UserDetails userDetails) {
         User currentUser = userService.getUserByUsername(userDetails.getUsername());
         Couple existingCouple = coupleService.getCoupleById(coupleId);
         if (existingCouple == null || (!currentUser.getUserID().equals(existingCouple.getUserID1()) && !currentUser.getUserID().equals(existingCouple.getUserID2()))) {
             return ResponseEntity.badRequest().build();
         }
-        couple.setCoupleID(coupleId);
-        Couple updatedCouple = coupleService.updateCouple(couple);
+        Couple updatedCouple = coupleService.updateCouple(currentUser, coupleId, anniversaryDate, background);
         return ResponseEntity.ok(updatedCouple);
     }
 
