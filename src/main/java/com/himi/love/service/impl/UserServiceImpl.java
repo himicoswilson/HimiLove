@@ -8,8 +8,6 @@ import com.himi.love.config.JwtConfig;
 import com.himi.love.service.ImageUploadService;
 import com.himi.love.service.CoupleService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.Cache;
-import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -20,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import java.util.ArrayList;
 import java.util.List;
+import org.springframework.data.redis.core.RedisTemplate;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -40,7 +39,7 @@ public class UserServiceImpl implements UserService {
     private CoupleService coupleService;
 
     @Autowired
-    private CacheManager cacheManager;
+    private RedisTemplate<String, Object> redisTemplate;
 
     @Override
     @Transactional
@@ -176,13 +175,13 @@ public class UserServiceImpl implements UserService {
         // 清除该用户相关的帖子缓存
         Couple couple = coupleService.getCoupleByUser(user);
         if (couple != null) {
-            Cache cache = cacheManager.getCache("posts");
-            if (cache != null) {
-                // 这里假设我们最多缓存了100页的数据
-                for (int i = 1; i <= 100; i++) {
-                    cache.evict(couple.getCoupleID() + ":" + i + ":10");  // 假设每页10条
-                }
-            }
+            // 增加缓存版本号
+            String versionKey = "posts:version:" + couple.getCoupleID();
+            redisTemplate.opsForValue().increment(versionKey);
+
+            // 只清除第一页缓存
+            String firstPageCacheKey = couple.getCoupleID() + ":posts:1:10";
+            redisTemplate.delete(firstPageCacheKey);
         }
 
         return user;

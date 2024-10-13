@@ -19,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.multipart.MultipartFile;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -51,9 +52,11 @@ public class PostServiceImpl implements PostService {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private RedisTemplate<String, Object> redisTemplate;
+
     @Override
     @Transactional
-    @CacheEvict(cacheNames = "posts", key = "#couple.getCoupleID() + ':' + #page + ':' + #limit")
     public Post createPost(String content, String tagsJson, String entitiesJson, MultipartFile[] images, User currentUser, Couple couple) {
         // 创建帖子
         Post postEntity = new Post();
@@ -121,6 +124,14 @@ public class PostServiceImpl implements PostService {
             }
         }
 
+        // 增加缓存版本号
+        String versionKey = "posts:version:" + couple.getCoupleID();
+        redisTemplate.opsForValue().increment(versionKey);
+
+        // 只清除第一页缓存
+        String firstPageCacheKey = couple.getCoupleID() + ":posts:1:10";
+        redisTemplate.delete(firstPageCacheKey);
+
         return postEntity;
     }
 
@@ -141,7 +152,7 @@ public class PostServiceImpl implements PostService {
 
     @Override
     @Transactional
-    @Cacheable(cacheNames = "posts", key = "#couple.getCoupleID() + ':' + #page + ':' + #limit", unless = "#result == null")
+    @Cacheable(cacheNames = "posts", key = "#couple.getCoupleID() + ':posts:' + #page + ':' + #limit + ':' + @redisTemplate.opsForValue().get('posts:version:' + #couple.getCoupleID())", unless = "#result == null")
     public List<PostDTO> getAllPosts(User currentUser, Couple couple, int page, int limit) {
         int offset = (page - 1) * limit;
         List<Post> posts = postMapper.findByCoupleIdWithPagination(couple.getCoupleID(), offset, limit);
