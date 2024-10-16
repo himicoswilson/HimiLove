@@ -92,10 +92,10 @@ public class PostController {
         return ResponseEntity.ok(posts);
     }
 
-    @GetMapping("/entity/{entityId}")
-    public ResponseEntity<?> getPostsByEntityId(@PathVariable Integer entityId, @AuthenticationPrincipal UserDetails userDetails) {
+    @GetMapping("/entity/{entityId}/{page}/{limit}")
+    public ResponseEntity<?> getPostsByEntityId(@PathVariable Integer entityId, @PathVariable int page, @PathVariable int limit, @AuthenticationPrincipal UserDetails userDetails) {
         User currentUser = userService.getUserByUsername(userDetails.getUsername());
-        List<PostDTO> posts = postEntityService.getPostsByEntityId(entityId, currentUser);
+        List<PostDTO> posts = postEntityService.getPostsByEntityId(entityId, currentUser, page, limit);
         return ResponseEntity.ok(posts);
     }
 

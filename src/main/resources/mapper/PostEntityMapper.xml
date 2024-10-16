@@ -24,27 +24,18 @@
         <result property="content" column="Content"/>
         <result property="userID" column="UserID"/>
         <result property="userName" column="UserName"/>
-        <result property="userAvatar" column="UserAvatar"/>
+        <result property="nickName" column="NickName"/>
+        <result property="userAvatar" column="Avatar"/>
         <result property="coupleID" column="CoupleID"/>
         <result property="locationID" column="LocationID"/>
         <result property="createdAt" column="CreatedAt"/>
         <result property="updatedAt" column="UpdatedAt"/>
-        <result property="deleted" column="IsDeleted"/>
+        <result property="isDeleted" column="IsDeleted"/>
         <collection property="images" ofType="com.himi.love.dto.ImageDTO" column="PostID" select="selectImagesByPostId"/>
         <collection property="tags" ofType="com.himi.love.dto.TagDTO" column="PostID" select="selectTagsByPostId"/>
         <collection property="entities" ofType="com.himi.love.dto.EntityDTO" column="PostID" select="selectEntitiesByPostId"/>
         <collection property="comments" ofType="com.himi.love.dto.CommentDTO" column="PostID" select="selectCommentsByPostId"/>
     </resultMap>
-
-    <select id="findPostsByEntityId" resultMap="PostDTOResultMap">
-        SELECT p.PostID, p.Content, p.UserID, p.CoupleID, p.LocationID, p.CreatedAt, p.UpdatedAt, p.IsDeleted,
-               u.UserName, u.Avatar as UserAvatar
-        FROM Post p
-        JOIN Post_Entity pe ON p.PostID = pe.PostID
-        JOIN User u ON p.UserID = u.UserID
-        WHERE pe.EntityID = #{entityId}
-        ORDER BY p.CreatedAt DESC
-    </select>
 
     <select id="selectImagesByPostId" resultType="com.himi.love.dto.ImageDTO">
         SELECT ImageID, ImageURL, PostID
@@ -80,5 +71,15 @@
         FROM Post p
         JOIN Post_Entity pe ON p.PostID = pe.PostID
         WHERE pe.EntityID = #{entityId}
+    </select>
+
+    <select id="findPostsByEntityIdWithPagination" resultMap="PostDTOResultMap">
+        SELECT p.*, u.UserName, u.NickName, u.Avatar
+        FROM Post p
+        JOIN Post_Entity pe ON p.PostID = pe.PostID
+        LEFT JOIN User u ON p.UserID = u.UserID
+        WHERE pe.EntityID = #{entityId}
+        ORDER BY p.CreatedAt DESC
+        LIMIT #{offset}, #{limit}
     </select>
 </mapper>

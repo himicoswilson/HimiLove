@@ -14,6 +14,6 @@ public interface PostEntityMapper {
     int deleteByPostIdAndEntityId(@Param("postId") Integer postId, @Param("entityId") Integer entityId);
     List<Integer> findEntityIdsByPostId(Integer postId);
     List<Integer> findPostIdsByEntityId(Integer entityId);
-    List<PostDTO> findPostsByEntityId(@Param("entityId") Integer entityId);
+    List<PostDTO> findPostsByEntityIdWithPagination(@Param("entityId") Integer entityId, @Param("offset") int offset, @Param("limit") int limit);
     LocalDateTime findLatestPostTimeByEntityId(@Param("entityId") Integer entityId);
 }

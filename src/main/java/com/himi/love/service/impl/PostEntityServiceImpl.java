@@ -11,6 +11,8 @@ import com.himi.love.service.CoupleService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -35,6 +37,7 @@ public class PostEntityServiceImpl implements PostEntityService {
 
     @Override
     @Transactional
+    @CacheEvict(cacheNames = {"postEntities", "entityPosts"}, key = "#postID")
     public void addEntityToPost(Integer postID, Integer entityID, User currentUser) {
         PostDTO post = postService.getPostById(postID, currentUser, coupleService.getCoupleByUser(currentUser));
         Entity entity = entityService.getEntityById(entityID, currentUser);
@@ -49,6 +52,7 @@ public class PostEntityServiceImpl implements PostEntityService {
 
     @Override
     @Transactional
+    @CacheEvict(cacheNames = {"postEntities", "entityPosts"}, key = "#postID")
     public void removeEntityFromPost(Integer postID, Integer entityID, User currentUser) {
         PostDTO post = postService.getPostById(postID, currentUser, coupleService.getCoupleByUser(currentUser));
         Entity entity = entityService.getEntityById(entityID, currentUser);
@@ -61,27 +65,30 @@ public class PostEntityServiceImpl implements PostEntityService {
     }
 
     @Override
+    @Transactional
+    @Cacheable(cacheNames = "postEntities", key = "#postID", unless = "#result.isEmpty()")
     public List<Integer> getEntityIdsByPostId(Integer postID, User currentUser) {
         return postEntityMapper.findEntityIdsByPostId(postID);
     }
 
     @Override
-    public List<Integer> getPostIdsByEntityId(Integer entityID, User currentUser) {
-        return postEntityMapper.findPostIdsByEntityId(entityID);
+    @Transactional
+    @Cacheable(cacheNames = "entityPosts", key = "#entityId + ':' + #page + ':' + #limit", unless = "#result.isEmpty()")
+    public List<PostDTO> getPostsByEntityId(Integer entityId, User currentUser, int page, int limit) {
+        int offset = (page - 1) * limit;
+        List<PostDTO> posts = postEntityMapper.findPostsByEntityIdWithPagination(entityId, offset, limit);
+        return posts;
     }
 
     @Override
-    public List<PostDTO> getPostsByEntityId(Integer entityId, User currentUser) {
-        List<PostDTO> posts = postEntityMapper.findPostsByEntityId(entityId);
-        
-        // 更新最后查看时间
+    @Transactional
+    @CacheEvict(cacheNames = "entitiesWithStatus", key = "#currentUser.getUserID()")
+    public void updateLastViewedTime(Integer entityId, User currentUser) {
         UserEntityLastViewed lastViewed = new UserEntityLastViewed();
         lastViewed.setUserID(currentUser.getUserID());
         lastViewed.setEntityID(entityId);
         lastViewed.setLastViewedTime(LocalDateTime.now());
         userEntityLastViewedMapper.insertOrUpdate(lastViewed);
-        
-        return posts;
     }
 
     @Override

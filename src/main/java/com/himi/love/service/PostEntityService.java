@@ -9,7 +9,7 @@ public interface PostEntityService {
     void addEntityToPost(Integer postID, Integer entityID, User currentUser);
     void removeEntityFromPost(Integer postID, Integer entityID, User currentUser);
     List<Integer> getEntityIdsByPostId(Integer postID, User currentUser);
-    List<Integer> getPostIdsByEntityId(Integer entityID, User currentUser);
-    List<PostDTO> getPostsByEntityId(Integer entityId, User currentUser);
+    List<PostDTO> getPostsByEntityId(Integer entityId, User currentUser, int page, int limit);
+    void updateLastViewedTime(Integer entityId, User currentUser);
     boolean hasUnviewedPosts(Integer entityId, User currentUser);
 }

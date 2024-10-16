@@ -4,6 +4,7 @@ import com.himi.love.dto.EntityDTO;
 import com.himi.love.model.Entity;
 import com.himi.love.model.User;
 import com.himi.love.service.EntityService;
+import com.himi.love.service.PostEntityService;
 import com.himi.love.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -19,6 +20,9 @@ public class EntityController {
 
     @Autowired
     private EntityService entityService;
+
+    @Autowired
+    private PostEntityService postEntityService;
 
     @Autowired
     private UserService userService;
@@ -53,5 +57,11 @@ public class EntityController {
         User currentUser = userService.getUserByUsername(userDetails.getUsername());
         List<EntityDTO> entities = entityService.getAllEntitiesWithUnviewedStatus(currentUser);
         return ResponseEntity.ok(entities);
+    }
+
+    @GetMapping("/{entityId}/last-viewed")
+    public ResponseEntity<Void> updateLastViewedTime(@PathVariable Integer entityId, @AuthenticationPrincipal UserDetails userDetails) {
+        postEntityService.updateLastViewedTime(entityId, userService.getUserByUsername(userDetails.getUsername()));
+        return ResponseEntity.ok().build();
     }
 }
