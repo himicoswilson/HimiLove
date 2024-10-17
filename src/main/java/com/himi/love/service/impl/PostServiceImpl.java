@@ -28,6 +28,8 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.springframework.beans.BeanUtils;
 import com.himi.love.service.UserService;
+
+
 @Service
 public class PostServiceImpl implements PostService {
 
@@ -132,6 +134,11 @@ public class PostServiceImpl implements PostService {
         String firstPageCacheKey = couple.getCoupleID() + ":posts:1:10";
         redisTemplate.delete(firstPageCacheKey);
 
+        // 清除 entitiesWithStatus 缓存
+        String entitiesWithStatusCacheKey1 = "entitiesWithStatus::" + couple.getUserID1();
+        String entitiesWithStatusCacheKey2 = "entitiesWithStatus::" + couple.getUserID2();
+        redisTemplate.delete(entitiesWithStatusCacheKey1);
+        redisTemplate.delete(entitiesWithStatusCacheKey2);
         return postEntity;
     }
 
