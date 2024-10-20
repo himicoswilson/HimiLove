@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.redis.core.RedisTemplate;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -35,9 +36,11 @@ public class PostEntityServiceImpl implements PostEntityService {
     @Autowired
     private UserEntityLastViewedMapper userEntityLastViewedMapper;
 
+    @Autowired
+    private RedisTemplate<String, String> redisTemplate;
+
     @Override
     @Transactional
-    @CacheEvict(cacheNames = {"postEntities", "entityPosts"}, key = "#postID")
     public void addEntityToPost(Integer postID, Integer entityID, User currentUser) {
         PostDTO post = postService.getPostById(postID, currentUser, coupleService.getCoupleByUser(currentUser));
         Entity entity = entityService.getEntityById(entityID, currentUser);
@@ -48,11 +51,18 @@ public class PostEntityServiceImpl implements PostEntityService {
         
         PostEntity postEntity = new PostEntity(postID, entityID);
         postEntityMapper.insert(postEntity);
+
+        // 增加缓存版本号
+        String versionKey = "entityPosts:version:" + entityID;
+        redisTemplate.opsForValue().increment(versionKey);
+
+        // 只清除第一页缓存
+        String firstPageCacheKey = entityID + ":entityPosts:1:10";
+        redisTemplate.delete(firstPageCacheKey);
     }
 
     @Override
     @Transactional
-    @CacheEvict(cacheNames = {"postEntities", "entityPosts"}, key = "#postID")
     public void removeEntityFromPost(Integer postID, Integer entityID, User currentUser) {
         PostDTO post = postService.getPostById(postID, currentUser, coupleService.getCoupleByUser(currentUser));
         Entity entity = entityService.getEntityById(entityID, currentUser);
@@ -62,18 +72,24 @@ public class PostEntityServiceImpl implements PostEntityService {
         }
         
         postEntityMapper.deleteByPostIdAndEntityId(postID, entityID);
+
+        // 增加缓存版本号
+        String versionKey = "entityPosts:version:" + entityID;
+        redisTemplate.opsForValue().increment(versionKey);
+
+        // 只清除第一页缓存
+        String firstPageCacheKey = entityID + ":entityPosts:1:10";
+        redisTemplate.delete(firstPageCacheKey);
     }
 
     @Override
-    @Transactional
     @Cacheable(cacheNames = "postEntities", key = "#postID", unless = "#result.isEmpty()")
     public List<Integer> getEntityIdsByPostId(Integer postID, User currentUser) {
         return postEntityMapper.findEntityIdsByPostId(postID);
     }
 
     @Override
-    @Transactional
-    @Cacheable(cacheNames = "entityPosts", key = "#entityId + ':' + #page + ':' + #limit", unless = "#result.isEmpty()")
+    @Cacheable(cacheNames = "entityPosts", key = "#entityId + ':' + #page + ':' + #limit + ':' + @redisTemplate.opsForValue().get('entityPosts:version:' + #entityId)", unless = "#result.isEmpty()")
     public List<PostDTO> getPostsByEntityId(Integer entityId, User currentUser, int page, int limit) {
         int offset = (page - 1) * limit;
         List<PostDTO> posts = postEntityMapper.findPostsByEntityIdWithPagination(entityId, offset, limit);

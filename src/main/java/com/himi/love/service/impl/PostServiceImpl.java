@@ -5,13 +5,11 @@ import com.himi.love.dto.*;
 import com.himi.love.model.Post;
 import com.himi.love.model.User;
 import com.himi.love.model.Couple;
-import com.himi.love.model.PostEntity;
 import com.himi.love.service.PostService;
 import com.himi.love.service.CoupleService;
 import com.himi.love.mapper.PostMapper;
 import com.himi.love.mapper.ImageMapper;
 import com.himi.love.mapper.PostTagMapper;
-import com.himi.love.mapper.PostEntityMapper;
 import com.himi.love.service.ImageUploadService;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
@@ -28,7 +26,9 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.springframework.beans.BeanUtils;
 import com.himi.love.service.UserService;
+import com.himi.love.service.PostEntityService;
 
+import org.springframework.context.annotation.Lazy;
 
 @Service
 public class PostServiceImpl implements PostService {
@@ -43,9 +43,6 @@ public class PostServiceImpl implements PostService {
     private PostTagMapper postTagMapper;
 
     @Autowired
-    private PostEntityMapper postEntityMapper;
-
-    @Autowired
     private ImageUploadService imageUploadService;
 
     @Autowired
@@ -56,6 +53,10 @@ public class PostServiceImpl implements PostService {
 
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;
+
+    @Autowired
+    @Lazy
+    private PostEntityService postEntityService;
 
     @Override
     @Transactional
@@ -122,7 +123,7 @@ public class PostServiceImpl implements PostService {
             }
             for (EntityDTO entity : entities) {
                 // 插入实体到数据库
-                postEntityMapper.insert(new PostEntity(postEntity.getPostID(), entity.getEntityID()));
+                postEntityService.addEntityToPost(postEntity.getPostID(), entity.getEntityID(), currentUser);
             }
         }
 
@@ -135,10 +136,12 @@ public class PostServiceImpl implements PostService {
         redisTemplate.delete(firstPageCacheKey);
 
         // 清除 entitiesWithStatus 缓存
-        String entitiesWithStatusCacheKey1 = "entitiesWithStatus::" + couple.getUserID1();
-        String entitiesWithStatusCacheKey2 = "entitiesWithStatus::" + couple.getUserID2();
-        redisTemplate.delete(entitiesWithStatusCacheKey1);
-        redisTemplate.delete(entitiesWithStatusCacheKey2);
+        List<String> keysToDelete = List.of(
+            "entitiesWithStatus::" + couple.getUserID1(),
+            "entitiesWithStatus::" + couple.getUserID2()
+        );
+        redisTemplate.delete(keysToDelete);
+
         return postEntity;
     }
 
