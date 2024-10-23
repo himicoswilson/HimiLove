@@ -1,5 +1,6 @@
 package com.himi.love.controller;
 
+import com.himi.love.dto.CommentDTO;
 import com.himi.love.model.Comment;
 import com.himi.love.model.User;
 import com.himi.love.service.CommentService;
@@ -30,7 +31,7 @@ public class CommentController {
         }
         try {
             User currentUser = userService.getUserByUsername(userDetails.getUsername());
-            Comment createdComment = commentService.createComment(comment, currentUser);
+            CommentDTO createdComment = commentService.createComment(comment, currentUser);
             return ResponseEntity.ok(createdComment);
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());

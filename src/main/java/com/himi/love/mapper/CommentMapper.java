@@ -1,5 +1,6 @@
 package com.himi.love.mapper;
 
+import com.himi.love.dto.CommentDTO;
 import com.himi.love.model.Comment;
 import org.apache.ibatis.annotations.Mapper;
 
@@ -12,6 +13,6 @@ public interface CommentMapper {
     List<Comment> findByPostId(Integer postId);
     List<Comment> findByUserId(Integer userId);
     List<Comment> findByParentCommentId(Integer parentCommentId);
-    int insert(Comment comment);
+    int insert(CommentDTO comment);
     int update(Comment comment);
 }

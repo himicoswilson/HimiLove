@@ -8,6 +8,7 @@ public class CommentDTO implements Serializable {
     private String content;      // 评论内容
     private Integer userID;      // 评论用户的ID
     private String userName;     // 评论用户的名称
+    private String nickName;     // 评论用户的昵称
     private String userAvatar;   // 评论用户的头像
     private Integer postID;      // 关联帖子的ID
     private Integer parentCommentID; // 父评论的ID（用于支持嵌套评论）
@@ -47,6 +48,14 @@ public class CommentDTO implements Serializable {
 
     public void setUserName(String userName) {
         this.userName = userName;
+    }
+
+    public String getNickName() {
+        return nickName;
+    }
+
+    public void setNickName(String nickName) {
+        this.nickName = nickName;
     }
 
     public String getUserAvatar() {

@@ -1,18 +1,21 @@
 package com.himi.love.service.impl;
 
 import com.himi.love.model.Comment;
+import com.himi.love.model.Couple;
 import com.himi.love.model.User;
+import com.himi.love.dto.CommentDTO;
 import com.himi.love.dto.PostDTO;
 import com.himi.love.service.CommentService;
 import com.himi.love.service.PostService;
 import com.himi.love.service.CoupleService;
 import com.himi.love.mapper.CommentMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.CacheEvict;
-
+import org.springframework.data.redis.core.RedisTemplate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -28,10 +31,13 @@ public class CommentServiceImpl implements CommentService {
     @Autowired
     private CoupleService coupleService;
 
+    @Autowired
+    private RedisTemplate<String, Object> redisTemplate;
+
     @Override
     @Transactional
     @CacheEvict(cacheNames = {"comment", "commentsByPost"}, allEntries = true)
-    public Comment createComment(Comment comment, User currentUser) {
+    public CommentDTO createComment(Comment comment, User currentUser) {
         PostDTO post = postService.getPostById(comment.getPostID(), currentUser, coupleService.getCoupleByUser(currentUser));
         if (!isAllowedToComment(post, currentUser)) {
             throw new RuntimeException("您没有权限对此帖子进行评论");
@@ -43,14 +49,31 @@ public class CommentServiceImpl implements CommentService {
                 throw new RuntimeException("父评论不存在或不属于此帖子");
             }
         }
+
+        CommentDTO commentDto = new CommentDTO();
+        BeanUtils.copyProperties(comment, commentDto);
         
-        comment.setUserID(currentUser.getUserID());
-        comment.setDeleted(false);
-        comment.setCreatedAt(LocalDateTime.now());
-        comment.setUpdatedAt(LocalDateTime.now());
+        commentDto.setUserID(currentUser.getUserID());
+        commentDto.setNickName(currentUser.getNickName());
+        commentDto.setUserName(currentUser.getUserName());
+        commentDto.setDeleted(false);
+        commentDto.setCreatedAt(LocalDateTime.now());
+        commentDto.setUpdatedAt(LocalDateTime.now());
+
+        // 清除帖子缓存
+        Couple couple = coupleService.getCoupleByUser(currentUser);
+        if (couple != null) {
+            // 增加缓存版本号
+            String versionKey = "posts:version:" + couple.getCoupleID();
+            redisTemplate.opsForValue().increment(versionKey);
+
+            // 只清除第一页缓存
+            String firstPageCacheKey = couple.getCoupleID() + ":posts:1:10";
+            redisTemplate.delete(firstPageCacheKey);
+        }
         
-        commentMapper.insert(comment);
-        return comment;
+        commentMapper.insert(commentDto);
+        return commentDto;
     }
 
     @Override

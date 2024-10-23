@@ -93,7 +93,7 @@
     <!-- 查询帖子的评论列表 -->
     <select id="findCommentsByPostId" resultType="com.himi.love.dto.CommentDTO">
         SELECT c.CommentID, c.Content, c.UserID, c.PostID, c.ParentCommentID, c.IsDeleted, c.CreatedAt, c.UpdatedAt,
-               u.UserName, u.Avatar as UserAvatar
+               u.UserName, u.NickName, u.Avatar as UserAvatar
         FROM Comment c
                  JOIN User u ON c.UserID = u.UserID
         WHERE c.PostID = #{postId}
