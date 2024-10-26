@@ -56,6 +56,7 @@ public class CommentServiceImpl implements CommentService {
         commentDto.setUserID(currentUser.getUserID());
         commentDto.setNickName(currentUser.getNickName());
         commentDto.setUserName(currentUser.getUserName());
+        commentDto.setUserAvatar(currentUser.getAvatar());
         commentDto.setDeleted(false);
         commentDto.setCreatedAt(LocalDateTime.now());
         commentDto.setUpdatedAt(LocalDateTime.now());
