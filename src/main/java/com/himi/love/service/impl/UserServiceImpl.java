@@ -180,9 +180,16 @@ public class UserServiceImpl implements UserService {
             redisTemplate.opsForValue().increment(versionKey);
 
             // 只清除第一页缓存
-            String firstPageCacheKey = couple.getCoupleID() + ":posts:1:10";
+            String firstPageCacheKey = couple.getCoupleID() + ":posts:1:10:*";
             redisTemplate.delete(firstPageCacheKey);
         }
+
+        // 增加缓存版本号
+        String versionKey = "entityPosts:version:*";
+        redisTemplate.opsForValue().increment(versionKey);
+
+        // 清除每一个实体的entityPost的第一页缓存
+        redisTemplate.delete("entityPost:*:1:10:*");
 
         return user;
     }
