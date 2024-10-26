@@ -57,7 +57,7 @@ public class PostEntityServiceImpl implements PostEntityService {
         redisTemplate.opsForValue().increment(versionKey);
 
         // 只清除第一页缓存
-        String firstPageCacheKey = entityID + ":entityPosts:1:10";
+        String firstPageCacheKey = entityID + ":entityPosts:1:10:*";
         redisTemplate.delete(firstPageCacheKey);
     }
 
@@ -78,7 +78,7 @@ public class PostEntityServiceImpl implements PostEntityService {
         redisTemplate.opsForValue().increment(versionKey);
 
         // 只清除第一页缓存
-        String firstPageCacheKey = entityID + ":entityPosts:1:10";
+        String firstPageCacheKey = entityID + ":entityPosts:1:10:*";
         redisTemplate.delete(firstPageCacheKey);
     }
 

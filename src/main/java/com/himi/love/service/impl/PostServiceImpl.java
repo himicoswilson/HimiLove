@@ -132,7 +132,7 @@ public class PostServiceImpl implements PostService {
         redisTemplate.opsForValue().increment(versionKey);
 
         // 只清除第一页缓存
-        String firstPageCacheKey = couple.getCoupleID() + ":posts:1:10";
+        String firstPageCacheKey = couple.getCoupleID() + ":posts:1:10:*";
         redisTemplate.delete(firstPageCacheKey);
 
         // 清除 entitiesWithStatus 缓存

@@ -68,7 +68,7 @@ public class CommentServiceImpl implements CommentService {
             redisTemplate.opsForValue().increment(versionKey);
 
             // 只清除第一页缓存
-            String firstPageCacheKey = couple.getCoupleID() + ":posts:1:10";
+            String firstPageCacheKey = couple.getCoupleID() + ":posts:1:10:*";
             redisTemplate.delete(firstPageCacheKey);
         }
         
