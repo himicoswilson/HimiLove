@@ -10,6 +10,7 @@ public class User implements Serializable {
     private String password;
     private String email;
     private String avatar;
+    private String barkToken;
     private LocalDateTime registrationDate;
     private LocalDateTime logoutDate;
     private LocalDateTime updatedAt;
@@ -100,6 +101,14 @@ public class User implements Serializable {
 
     public void setAvatar(String avatar) {
         this.avatar = avatar;
+    }
+
+    public String getBarkToken() {
+        return barkToken;
+    }
+
+    public void setBarkToken(String barkToken) {
+        this.barkToken = barkToken;
     }
 
     public LocalDateTime getRegistrationDate() {
