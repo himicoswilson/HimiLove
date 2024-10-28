@@ -8,6 +8,7 @@
         <result column="Password" jdbcType="VARCHAR" property="password" />
         <result column="Email" jdbcType="VARCHAR" property="email" />
         <result column="Avatar" jdbcType="VARCHAR" property="avatar" />
+        <result column="BarkToken" jdbcType="VARCHAR" property="barkToken" />
         <result column="RegistrationDate" jdbcType="TIMESTAMP" property="registrationDate" />
         <result column="IsDeleted" jdbcType="BOOLEAN" property="isDeleted" />
         <result column="LastLoginTime" jdbcType="TIMESTAMP" property="lastLoginTime" />
@@ -30,8 +31,8 @@
     </select>
 
     <insert id="insert" useGeneratedKeys="true" keyProperty="userID">
-        INSERT INTO User (UserName, Password, Email, Avatar, NickName)
-        VALUES (#{userName}, #{password}, #{email}, #{avatar}, #{nickName})
+        INSERT INTO User (UserName, Password, Email, Avatar, NickName, BarkToken)
+        VALUES (#{userName}, #{password}, #{email}, #{avatar}, #{nickName}, #{barkToken})
     </insert>
 
     <update id="update">
@@ -40,7 +41,8 @@
             NickName = #{nickName},
             Password = #{password},
             Email = #{email},
-            Avatar = #{avatar}
+            Avatar = #{avatar},
+            BarkToken = #{barkToken}
         WHERE UserID = #{userID}
     </update>
 
