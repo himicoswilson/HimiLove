@@ -23,4 +23,10 @@ public interface LocationMapper {
     Location findByLatLongAndName(@Param("latitude") BigDecimal latitude, 
                                   @Param("longitude") BigDecimal longitude, 
                                   @Param("locationName") String locationName);
+    
+    List<Location> findNearbyLocationsBySpatial(
+        @Param("latitude") BigDecimal latitude,
+        @Param("longitude") BigDecimal longitude,
+        @Param("radiusInMeters") double radiusInMeters
+    );
 }

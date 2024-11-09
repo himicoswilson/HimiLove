@@ -57,4 +57,9 @@ public class LocationServiceImpl implements LocationService {
         createLocation(newLocation);
         return newLocation;
     }
+
+    @Override
+    public List<Location> findNearbyLocations(BigDecimal latitude, BigDecimal longitude, double radiusInMeters) {
+        return locationMapper.findNearbyLocationsBySpatial(latitude, longitude, radiusInMeters);
+    }
 }

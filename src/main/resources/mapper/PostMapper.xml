@@ -12,6 +12,26 @@
         <result column="IsDeleted" jdbcType="BOOLEAN" property="isDeleted" />
     </resultMap>
 
+    <resultMap id="PostDTOResultMap" type="com.himi.love.dto.PostDTO">
+        <id property="postID" column="PostID"/>
+        <result property="content" column="Content"/>
+        <result property="userID" column="UserID"/>
+        <result property="userName" column="UserName"/>
+        <result property="nickName" column="NickName"/>
+        <result property="userAvatar" column="Avatar"/>
+        <result property="coupleID" column="CoupleID"/>
+        <result property="locationID" column="LocationID"/>
+        <result property="createdAt" column="CreatedAt"/>
+        <result property="updatedAt" column="UpdatedAt"/>
+        <result property="isDeleted" column="IsDeleted"/>
+        
+        <collection property="location" ofType="com.himi.love.dto.LocationDTO" column="LocationID" select="selectLocationByLocationId"/>
+        <collection property="images" ofType="com.himi.love.dto.ImageDTO" column="PostID" select="selectImagesByPostId"/>
+        <collection property="tags" ofType="com.himi.love.dto.TagDTO" column="PostID" select="selectTagsByPostId"/>
+        <collection property="entities" ofType="com.himi.love.dto.EntityDTO" column="PostID" select="selectEntitiesByPostId"/>
+        <collection property="comments" ofType="com.himi.love.dto.CommentDTO" column="PostID" select="selectCommentsByPostId"/>
+    </resultMap>
+
     <select id="findById" resultMap="BaseResultMap">
         SELECT * FROM Post WHERE PostID = #{postId} AND IsDeleted = false
     </select>
@@ -60,44 +80,64 @@
         UPDATE Post SET IsDeleted = true, UpdatedAt = NOW() WHERE PostID = #{postId}
     </update>
 
-    <select id="getUserByPostId" resultType="com.himi.love.model.User">
-        SELECT u.*
-        FROM User u
-                 JOIN Post p ON u.UserID = p.UserID
-        WHERE p.PostID = #{postId}
+    <select id="selectLocationByLocationId" resultType="com.himi.love.dto.LocationDTO">
+        SELECT LocationID, LocationName, Latitude, Longitude
+        FROM Location 
+        WHERE LocationID = #{locationID}
     </select>
 
-    <select id="findImagesByPostId" resultType="com.himi.love.dto.ImageDTO">
-        SELECT i.ImageID, i.ImageURL, i.PostID, i.OrderIndex
-        FROM Image i
-        WHERE i.PostID = #{postId}
-        ORDER BY i.OrderIndex ASC
+    <select id="selectImagesByPostId" resultType="com.himi.love.dto.ImageDTO">
+        SELECT ImageID, ImageURL, PostID, OrderIndex
+        FROM Image
+        WHERE PostID = #{PostID}
     </select>
 
-    <!-- 查询帖子关联的标签 -->
-    <select id="findTagsByPostId" resultType="com.himi.love.dto.TagDTO">
-        SELECT t.*
+    <select id="selectTagsByPostId" resultType="com.himi.love.dto.TagDTO">
+        SELECT t.TagID, t.TagName, t.CreatorID
         FROM Tag t
-                 JOIN Post_Tag pt ON t.TagID = pt.TagID
-        WHERE pt.PostID = #{postId}
+        JOIN Post_Tag pt ON t.TagID = pt.TagID
+        WHERE pt.PostID = #{PostID}
     </select>
 
-    <!-- 查询帖子关联的实体 -->
-    <select id="findEntitiesByPostId" resultType="com.himi.love.dto.EntityDTO">
-        SELECT e.*
+    <select id="selectEntitiesByPostId" resultType="com.himi.love.dto.EntityDTO">
+        SELECT e.EntityID, e.EntityName, e.EntityType, e.Avatar, e.CoupleID
         FROM Entity e
-                 JOIN Post_Entity pe ON e.EntityID = pe.EntityID
-        WHERE pe.PostID = #{postId}
+        JOIN Post_Entity pe ON e.EntityID = pe.EntityID
+        WHERE pe.PostID = #{PostID}
     </select>
 
-    <!-- 查询帖子的评论列表 -->
-    <select id="findCommentsByPostId" resultType="com.himi.love.dto.CommentDTO">
+    <select id="selectCommentsByPostId" resultType="com.himi.love.dto.CommentDTO">
         SELECT c.CommentID, c.Content, c.UserID, c.PostID, c.ParentCommentID, c.IsDeleted, c.CreatedAt, c.UpdatedAt,
-               u.UserName, u.NickName, u.Avatar as UserAvatar
+            u.UserName, u.NickName, u.Avatar as UserAvatar
         FROM Comment c
-                 JOIN User u ON c.UserID = u.UserID
-        WHERE c.PostID = #{postId}
-          AND c.IsDeleted = false
+        JOIN User u ON c.UserID = u.UserID
+        WHERE c.PostID = #{PostID}
         ORDER BY c.CreatedAt ASC
+    </select>
+
+    <select id="findPostDetailById" resultMap="PostDTOResultMap">
+        SELECT 
+            p.*,
+            u.UserName,
+            u.NickName,
+            u.Avatar
+        FROM Post p
+        LEFT JOIN User u ON p.UserID = u.UserID
+        WHERE p.PostID = #{postId} 
+        AND p.IsDeleted = false
+    </select>
+
+    <select id="findPostDetailsByCoupleIdWithPagination" resultMap="PostDTOResultMap">
+        SELECT 
+            p.*,
+            u.UserName,
+            u.NickName,
+            u.Avatar
+        FROM Post p
+        LEFT JOIN User u ON p.UserID = u.UserID
+        WHERE p.CoupleID = #{coupleId} 
+        AND p.IsDeleted = false 
+        ORDER BY p.CreatedAt DESC 
+        LIMIT #{offset}, #{limit}
     </select>
 </mapper>

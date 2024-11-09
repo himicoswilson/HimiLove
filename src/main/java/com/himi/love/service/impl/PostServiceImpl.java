@@ -5,6 +5,7 @@ import com.himi.love.dto.*;
 import com.himi.love.model.Post;
 import com.himi.love.model.User;
 import com.himi.love.model.Couple;
+import com.himi.love.model.Location;
 import com.himi.love.service.PostService;
 import com.himi.love.service.CoupleService;
 import com.himi.love.mapper.PostMapper;
@@ -20,14 +21,11 @@ import org.springframework.cache.annotation.Caching;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.multipart.MultipartFile;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import org.springframework.beans.BeanUtils;
-import com.himi.love.service.UserService;
 import com.himi.love.service.PostEntityService;
-
+import com.himi.love.service.LocationService;
 import org.springframework.context.annotation.Lazy;
 
 @Service
@@ -49,32 +47,53 @@ public class PostServiceImpl implements PostService {
     private CoupleService coupleService;
 
     @Autowired
-    private UserService userService;
-
-    @Autowired
     private RedisTemplate<String, Object> redisTemplate;
 
     @Autowired
     @Lazy
     private PostEntityService postEntityService;
 
+    @Autowired
+    private LocationService locationService;
+
     @Override
     @Transactional
-    public Post createPost(String content, String tagsJson, String entitiesJson, MultipartFile[] images, User currentUser, Couple couple) {
+    public Post createPost(String content, String tagsJson, String entitiesJson, MultipartFile[] images, String locationJson, User currentUser, Couple couple) {
         // 创建帖子
         Post postEntity = new Post();
         postEntity.setContent(content);
         postEntity.setUserID(currentUser.getUserID());
         postEntity.setCoupleID(couple.getCoupleID());
+        
+        // 先处理位置
+        if (locationJson != null) {
+            ObjectMapper objectMapper = new ObjectMapper();
+            Location location;
+            try {
+                location = objectMapper.readValue(locationJson, Location.class);
+                List<Location> nearbyLocations = locationService.findNearbyLocations(location.getLatitude(), location.getLongitude(), 100);
+                if (nearbyLocations.size() > 0) {
+                    location = nearbyLocations.get(0);
+                } else {
+                    location = locationService.createLocation(location);
+                }
+                postEntity.setLocationID(location.getLocationID());
+            } catch (JsonProcessingException e) {
+                e.printStackTrace();
+                return null;
+            }
+        }
+
         // 设置创建和更新时间
         LocalDateTime now = LocalDateTime.now();
         postEntity.setCreatedAt(now);
         postEntity.setUpdatedAt(now);
+        
+        // 插入帖子
         postMapper.insert(postEntity);
-        // 获取最后插入的ID
         Integer lastInsertId = postMapper.getLastInsertId();
         postEntity.setPostID(lastInsertId);
-        
+
         // 处理图片
         if (images != null) {
             for (int i = 0; i < images.length; i++) {
@@ -149,11 +168,11 @@ public class PostServiceImpl implements PostService {
     @Transactional
     @Cacheable(cacheNames = "posts", key = "#couple.getCoupleID() + ':' + #postId", unless = "#result == null")
     public PostDTO getPostById(Integer postId, User currentUser, Couple couple) {
-        Post post = postMapper.findById(postId);
-        if (post == null) {
+        // 使用单个联合查询获取所有数据
+        PostDTO postDTO = postMapper.findPostDetailById(postId);
+        if (postDTO == null) {
             throw new RuntimeException("帖子不存在");
         }
-        PostDTO postDTO = convertToPostDTO(post);
         if (!isAllowedToAccessPost(postDTO, currentUser)) {
             throw new RuntimeException("没有权限访问帖子");
         }
@@ -165,15 +184,7 @@ public class PostServiceImpl implements PostService {
     @Cacheable(cacheNames = "posts", key = "#couple.getCoupleID() + ':posts:' + #page + ':' + #limit + ':' + @redisTemplate.opsForValue().get('posts:version:' + #couple.getCoupleID())", unless = "#result == null")
     public List<PostDTO> getAllPosts(User currentUser, Couple couple, int page, int limit) {
         int offset = (page - 1) * limit;
-        List<Post> posts = postMapper.findByCoupleIdWithPagination(couple.getCoupleID(), offset, limit);
-        List<PostDTO> postDTOs = new ArrayList<>();
-
-        for (Post post : posts) {
-            PostDTO postDTO = convertToPostDTO(post);
-            postDTOs.add(postDTO);
-        }
-
-        return postDTOs;
+        return postMapper.findPostDetailsByCoupleIdWithPagination(couple.getCoupleID(), offset, limit);
     }
 
     @Override
@@ -230,36 +241,5 @@ public class PostServiceImpl implements PostService {
     public boolean isPostOwner(Integer postId, User currentUser) {
         Post post = postMapper.findById(postId);
         return post != null && post.getUserID().equals(currentUser.getUserID());
-    }
-
-    private PostDTO convertToPostDTO(Post post) {
-        PostDTO postDTO = new PostDTO();
-        BeanUtils.copyProperties(post, postDTO);
-
-        postDTO.setDeleted(post.isIsDeleted());
-        
-        // 获取最新的用户信息
-        User user = userService.getUserById(post.getUserID());
-        postDTO.setUserName(user.getUserName());
-        postDTO.setNickName(user.getNickName());
-        postDTO.setUserAvatar(user.getAvatar());
-        
-        // 设置图片列表
-        List<ImageDTO> images = postMapper.findImagesByPostId(post.getPostID());
-        postDTO.setImages(images);
-
-        // 设置标签列表
-        List<TagDTO> tags = postMapper.findTagsByPostId(post.getPostID());
-        postDTO.setTags(tags);
-
-        // 设置实体列表
-        List<EntityDTO> entities = postMapper.findEntitiesByPostId(post.getPostID());
-        postDTO.setEntities(entities);
-
-        // 设置评论列表
-        List<CommentDTO> comments = postMapper.findCommentsByPostId(post.getPostID());
-        postDTO.setComments(comments);
-
-        return postDTO;
     }
 }

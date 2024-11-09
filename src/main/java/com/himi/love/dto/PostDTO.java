@@ -2,9 +2,12 @@ package com.himi.love.dto;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 public class PostDTO implements Serializable {
+    private static final long serialVersionUID = 1L;
+
     private Integer postID;
     private String content;
     private Integer userID;
@@ -16,6 +19,10 @@ public class PostDTO implements Serializable {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private Boolean isDeleted;
+
+    // 关联的位置信息
+    private List<LocationDTO> location = new ArrayList<>();
+
     // 关联的图片列表
     private List<ImageDTO> images;
 
@@ -27,6 +34,7 @@ public class PostDTO implements Serializable {
 
     // 关联的评论列表
     private List<CommentDTO> comments;
+
     // Getters and Setters
 
     public Integer getPostID() {
@@ -115,6 +123,14 @@ public class PostDTO implements Serializable {
 
     public void setDeleted(Boolean deleted) {
         isDeleted = deleted;
+    }
+
+    public List<LocationDTO> getLocation() {
+        return location;
+    }
+
+    public void setLocation(List<LocationDTO> location) {
+        this.location = location;
     }
 
     public List<ImageDTO> getImages() {

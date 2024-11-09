@@ -14,4 +14,5 @@ public interface LocationService {
     void deleteLocation(Integer locationId);
     List<Location> searchNearbyLocations(double latitude, double longitude, double radiusInKm);
     Location createOrGetLocation(BigDecimal latitude, BigDecimal longitude, String locationName);
+    List<Location> findNearbyLocations(BigDecimal latitude, BigDecimal longitude, double radiusInMeters);
 }
