@@ -6,11 +6,22 @@
         <result column="Latitude" jdbcType="DECIMAL" property="latitude" />
         <result column="Longitude" jdbcType="DECIMAL" property="longitude" />
         <result column="LocationName" jdbcType="VARCHAR" property="locationName" />
+        <result column="Coordinates" jdbcType="BINARY" property="coordinates" typeHandler="com.himi.love.config.PointTypeHandler" />
     </resultMap>
 
     <insert id="insert" parameterType="com.himi.love.model.Location" useGeneratedKeys="true" keyProperty="locationID">
-        INSERT INTO Location (Latitude, Longitude, LocationName)
-        VALUES (#{latitude}, #{longitude}, #{locationName})
+        INSERT INTO Location (Latitude, Longitude, LocationName, coordinates)
+        VALUES (
+            #{latitude}, 
+            #{longitude}, 
+            #{locationName}, 
+            ST_SRID(
+                ST_PointFromText(
+                    CONCAT('POINT(', #{longitude}, ' ', #{latitude}, ')')
+                ),
+                4326
+            )
+        )
     </insert>
 
     <select id="findById" resultMap="BaseResultMap">
@@ -48,5 +59,14 @@
         WHERE Latitude = #{latitude} 
         AND Longitude = #{longitude} 
         AND LocationName = #{locationName}
+    </select>
+
+    <select id="findNearbyLocationsBySpatial" resultMap="BaseResultMap">
+        SELECT *
+        FROM Location
+        WHERE ST_Distance_Sphere(
+            coordinates,
+            ST_SRID(POINT(#{longitude}, #{latitude}), 4326)
+        ) &lt;= #{radiusInMeters}
     </select>
 </mapper>

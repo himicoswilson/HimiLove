@@ -39,10 +39,11 @@ public class PostController {
             @RequestParam(value = "tags", required = false) String tagsJson,
             @RequestParam(value = "entities", required = false) String entitiesJson,
             @RequestParam(value = "images", required = false) MultipartFile[] images,
+            @RequestParam(value = "location", required = false) String locationJson,
             @AuthenticationPrincipal UserDetails userDetails) {
         
         User currentUser = userService.getUserByUsername(userDetails.getUsername());
-        Post createdPost = postService.createPost(content, tagsJson, entitiesJson, images, currentUser, coupleService.getCoupleByUser(currentUser));
+        Post createdPost = postService.createPost(content, tagsJson, entitiesJson, images, locationJson, currentUser, coupleService.getCoupleByUser(currentUser));
         return ResponseEntity.ok(createdPost);
     }
 
