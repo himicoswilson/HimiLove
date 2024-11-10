@@ -106,4 +106,16 @@ public class PostController {
         boolean hasUnviewed = postEntityService.hasUnviewedPosts(entityId, currentUser);
         return ResponseEntity.ok(hasUnviewed);
     }
+
+    @GetMapping("/nearby/{postId}")
+    public ResponseEntity<List<PostDTO>> getNearbyPosts(
+        @PathVariable Integer postId,
+        @RequestParam(defaultValue = "500") double radius,
+        @RequestParam(defaultValue = "1") int page,
+        @RequestParam(defaultValue = "10") int size,
+        @AuthenticationPrincipal UserDetails userDetails) {
+        User currentUser = userService.getUserByUsername(userDetails.getUsername());
+        List<PostDTO> posts = postService.getNearbyPostsByPostId(postId, radius, page, size, currentUser, coupleService.getCoupleByUser(currentUser));
+        return ResponseEntity.ok(posts);
+    }
 }

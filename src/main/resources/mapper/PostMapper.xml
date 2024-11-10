@@ -140,4 +140,27 @@
         ORDER BY p.CreatedAt DESC 
         LIMIT #{offset}, #{limit}
     </select>
+
+    <select id="findNearbyPosts" resultMap="PostDTOResultMap">
+        SELECT 
+            p.*,
+            u.UserName,
+            u.NickName,
+            u.Avatar
+        FROM Post p
+        INNER JOIN Location l ON p.LocationID = l.LocationID
+        LEFT JOIN User u ON p.UserID = u.UserID
+        WHERE p.CoupleID = #{coupleId}
+        AND p.IsDeleted = false
+        AND ST_Distance_Sphere(
+            l.coordinates,
+            ST_SRID(POINT(#{longitude}, #{latitude}), 4326)
+        ) &lt;= #{radiusInMeters}
+        ORDER BY p.CreatedAt DESC, 
+            ST_Distance_Sphere(
+                l.coordinates,
+                ST_SRID(POINT(#{longitude}, #{latitude}), 4326)
+            )
+        LIMIT #{offset}, #{size}
+    </select>
 </mapper>
