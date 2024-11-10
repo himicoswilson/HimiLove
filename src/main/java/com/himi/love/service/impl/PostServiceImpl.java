@@ -232,6 +232,24 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
+    public List<PostDTO> getNearbyPostsByPostId(Integer postId, double radiusInMeters, int page, int size, User currentUser, Couple couple) {
+        if (couple == null) {
+            return List.of();
+        }
+        
+        // 获取原帖子的位置信息
+        PostDTO sourcePost = getPostById(postId, currentUser, couple);
+        if (sourcePost == null || sourcePost.getLocation() == null || sourcePost.getLocation().isEmpty()) {
+            return List.of();
+        }
+        
+        LocationDTO location = sourcePost.getLocation().get(0);
+        int offset = (page - 1) * size;
+        
+        return postMapper.findNearbyPosts(location.getLatitude(), location.getLongitude(), radiusInMeters, offset, size, couple.getCoupleID());
+    }
+
+    @Override
     public boolean isAllowedToAccessPost(PostDTO post, User currentUser) {
         Couple couple = coupleService.getCoupleByUser(currentUser);
         return couple != null && couple.getCoupleID().equals(post.getCoupleID());

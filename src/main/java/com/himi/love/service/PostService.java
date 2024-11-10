@@ -17,4 +17,5 @@ public interface PostService {
     List<Post> getPostsByLocationId(Integer locationId, User currentUser, Couple couple);
     boolean isAllowedToAccessPost(PostDTO post, User currentUser);
     boolean isPostOwner(Integer postId, User currentUser);
+    List<PostDTO> getNearbyPostsByPostId(Integer postId, double radiusInMeters, int page, int size, User currentUser, Couple couple);
 }
